@@ -1,7 +1,8 @@
-int rx = 3;
-int tx = 2;
+int rx = 4;
+int tx = 8;
 char received[4]; // limited to 4 bits for testing
 char message[4] = {1, 0, 1, 0}; // limited to 1010 for testing
+int delayTime = 5;
 
 int buttonSend = 7;
 
@@ -25,8 +26,10 @@ void loop() {
   switch(stateMachine){
     case 0:
     // start bit detected
-    if(rx == LOW)
+    digitalWrite(tx, LOW);
+    if(digitalRead(rx) == LOW)
     {
+      Serial.println("LOW detected SM0");
       receiveMessage(received);
       printMessage(received);
     }
@@ -34,10 +37,15 @@ void loop() {
     if(buttonDebounce())
     {
       stateMachine = 1;
+      if(digitalRead(rx) == LOW)
+    {
+      Serial.println("LOW detected SM1");
+    }
     }
     break;
 
     case 1:
+    digitalWrite(tx, LOW);
     transmitMessage(message);
     stateMachine = 0;
     break;
@@ -50,20 +58,21 @@ void loop() {
 
 void transmitMessage(char *message){
   digitalWrite(tx, LOW);
-  delay(1);
+  Serial.println("LOW");
+  delay(delayTime);
   for(int i = 0; i < 4; i++)
   {
     if(message[i] == 1)
     {
       digitalWrite(tx, HIGH);
       Serial.println("HIGH");
-      delay(1);
+      delay(delayTime);
     }
     else if(message[i] == 0)
     {
       digitalWrite(tx, LOW);
       Serial.println("LOW");
-      delay(1);
+      delay(delayTime);
     }
 
     if(i == 3)
@@ -74,17 +83,22 @@ void transmitMessage(char *message){
   }
 }
 
+
+
 int receiveMessage(char *received){
-  delay(1); // called after start bit
+  Serial.println("receiving...");
+  delay(delayTime); // called after start bit
   for(int i = 0; i < 4; i++)
   {
-    if(rx == HIGH){
+    if(digitalRead(rx) == HIGH){
       received[i] = 1;
+      delay(delayTime);
     }
-    else if(rx == LOW){
-      received[i] == 0;
+    else if(digitalRead(rx) == LOW){
+      received[i] = 0;
+      delay(delayTime);
     }
-    delay(1);
+    
   }
 }
 
